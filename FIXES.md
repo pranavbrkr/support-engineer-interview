@@ -49,6 +49,17 @@
 - **Date picker constraint**: Set `max={getMaxDateOfBirth()}` on the date input so the picker cannot select dates after 18 years ago.
 - **Helper text**: Added "You must be at least 18 years old" under the date of birth field.
 
+## VAL-205: Zero Amount Funding
+
+### Problems
+
+- **Client allowed $0.00**: The amount input used `min: 0.0`, which accepts values ≥ 0, so $0.00 passed validation. Users could submit and then see a server error instead of an inline form message.
+- **Misleading validation**: The error message said "Amount must be at least $0.01" but the rule allowed 0.
+
+### Fixes
+
+- **Client validation**: Changed `min` from `0.0` to `0.01` in `FundingModal` so zero-amount submissions are rejected with an inline error before the request is sent.
+
 ## VAL-206: Card Number Validation
 
 ### Problems
