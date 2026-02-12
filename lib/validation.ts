@@ -66,3 +66,53 @@ export function getMaxDateOfBirth(): string {
   maxDate.setFullYear(maxDate.getFullYear() - MINIMUM_AGE);
   return maxDate.toISOString().slice(0, 10);
 }
+
+// Card validation (Luhn algorithm + format)
+const VALID_CARD_LENGTHS = [13, 15, 16, 19];
+
+const CARD_PREFIXES: RegExp[] = [
+  /^4/, // Visa
+  /^5[1-5]/, // Mastercard
+  /^3[47]/, // Amex
+  /^6011/, // Discover
+  /^65/, // Discover
+  /^64[4-9]/, // Discover
+  /^622(?:1(?:2[6-9]|[3-9]\d)|[2-8]\d{2}|9[0-2][0-5])/, // Discover 622126-622925
+];
+
+function luhnCheck(cardNumber: string): boolean {
+  const digits = cardNumber.replace(/\D/g, "").split("").map(Number).reverse();
+  let sum = 0;
+  for (let i = 0; i < digits.length; i++) {
+    let digit = digits[i];
+    if (i % 2 === 1) {
+      digit *= 2;
+      if (digit > 9) digit -= 9;
+    }
+    sum += digit;
+  }
+  return sum % 10 === 0;
+}
+
+function hasValidCardPrefix(cardNumber: string): boolean {
+  return CARD_PREFIXES.some((re) => re.test(cardNumber));
+}
+
+export function isValidCardNumber(cardNumber: string): boolean {
+  const digits = cardNumber.replace(/\D/g, "");
+  if (!/^\d+$/.test(digits)) return false;
+  if (!VALID_CARD_LENGTHS.includes(digits.length)) return false;
+  if (!luhnCheck(digits)) return false;
+  if (!hasValidCardPrefix(digits)) return false;
+  return true;
+}
+
+export function validateCardNumber(value: string): true | string {
+  const digits = value?.replace(/\D/g, "") ?? "";
+  if (!digits) return "Card number is required";
+  if (!/^\d+$/.test(digits)) return "Card number must contain only digits";
+  if (!VALID_CARD_LENGTHS.includes(digits.length)) return "Card number must be 13, 15, 16, or 19 digits";
+  if (!luhnCheck(digits)) return "Invalid card number";
+  if (!hasValidCardPrefix(digits)) return "Card number not recognized";
+  return true;
+}
