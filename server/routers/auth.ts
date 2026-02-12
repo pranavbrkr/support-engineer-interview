@@ -21,6 +21,40 @@ const emailSchema = z
     { message: "Please check your email domain (e.g. .com instead of .con)" }
   );
 
+const MINIMUM_AGE = 18;
+
+const dateOfBirthSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (use YYYY-MM-DD)")
+  .refine(
+    (val) => {
+      const [y, m, d] = val.split("-").map(Number);
+      const date = new Date(y, m - 1, d);
+      return date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d;
+    },
+    { message: "Invalid date" }
+  )
+  .refine(
+    (val) => {
+      const birthDate = new Date(val);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      birthDate.setHours(0, 0, 0, 0);
+      return birthDate <= today;
+    },
+    { message: "Date of birth cannot be in the future" }
+  )
+  .refine(
+    (val) => {
+      const birthDate = new Date(val);
+      const today = new Date();
+      const minBirthDate = new Date(today);
+      minBirthDate.setFullYear(minBirthDate.getFullYear() - MINIMUM_AGE);
+      return birthDate <= minBirthDate;
+    },
+    { message: `You must be at least ${MINIMUM_AGE} years old to open an account` }
+  );
+
 export const authRouter = router({
   signup: publicProcedure
     .input(
@@ -30,7 +64,7 @@ export const authRouter = router({
         firstName: z.string().min(1),
         lastName: z.string().min(1),
         phoneNumber: z.string().regex(/^\+?\d{10,15}$/),
-        dateOfBirth: z.string(),
+        dateOfBirth: dateOfBirthSchema,
         ssn: z.string().regex(/^\d{9}$/),
         address: z.string().min(1),
         city: z.string().min(1),
