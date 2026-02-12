@@ -16,3 +16,19 @@
 - **Page backgrounds**: Updated login, signup, and dashboard pages with Tailwind `dark:` variants (e.g., `bg-gray-50 dark:bg-gray-900`) for main wrappers, cards, and text.
 - **Theme toggle**: Switched from `prefers-color-scheme` to class-based dark mode using `@custom-variant dark` in `globals.css`. Added a `ThemeProvider` with a fixed toggle button that sets the `dark` class on `<html>`, persists choice in `localStorage`, and falls back to system preference when no preference is stored.
 - **Hydration mismatch**: Set `suppressHydrationWarning` on the `<html>` element because the theme script updates the DOM before React hydrates, which would otherwise cause a server/client markup mismatch.
+
+## VAL-201: Email Validation Problems
+
+### Problems
+
+- **Silent lowercase conversion**: Signup used `z.string().email().toLowerCase()` on the server—emails like "TEST@example.com" were stored as "test@example.com" with no user notification.
+- **Login/signup case mismatch**: Signup stored emails in lowercase, but login did not normalize input. Users who signed up with "Test@Example.com" could fail to log in with the same casing.
+- **Client regex too permissive**: Both forms used `/^\S+@\S+$/i`, which accepted invalid addresses such as "a@b", "x@.con", and "test@@example.com".
+- **No TLD typo validation**: Common typos like ".con", ".cmo", ".ocm" (for ".com") were not detected or rejected.
+
+### Fixes
+
+- **Shared email schema (server)**: Introduced an `emailSchema` in `auth.ts` that validates with Zod’s `.email()`, normalizes via `.toLowerCase().trim()`, and rejects common TLD typos via `.refine()`.
+- **Consistent normalization**: Applied `emailSchema` to both signup and login so emails are always lowercased before storage and lookup.
+- **Client validation**: Added `lib/validation.ts` with `validateEmail()` using a stricter regex and the same TLD typo list, used by both signup and login forms.
+- **User notification**: Added the message "Emails are stored in lowercase (e.g. test@example.com)" under the signup email field to inform users about normalization.
