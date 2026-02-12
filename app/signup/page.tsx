@@ -65,18 +65,18 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Create your account</h2>
-          <p className="mt-2 text-center text-sm text-gray-600">Step {step} of 3</p>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-gray-100">Create your account</h2>
+          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">Step {step} of 3</p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           {step === 1 && (
             <div className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Email
                 </label>
                 <input
@@ -94,7 +94,7 @@ export default function SignupPage() {
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Password
                 </label>
                 <input
@@ -119,7 +119,7 @@ export default function SignupPage() {
               </div>
 
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Confirm Password
                 </label>
                 <input
@@ -141,7 +141,7 @@ export default function SignupPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     First Name
                   </label>
                   <input
@@ -153,7 +153,7 @@ export default function SignupPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Last Name
                   </label>
                   <input
@@ -166,7 +166,7 @@ export default function SignupPage() {
               </div>
 
               <div>
-                <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Phone Number
                 </label>
                 <input
@@ -185,7 +185,7 @@ export default function SignupPage() {
               </div>
 
               <div>
-                <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Date of Birth
                 </label>
                 <input
@@ -201,7 +201,7 @@ export default function SignupPage() {
           {step === 3 && (
             <div className="space-y-4">
               <div>
-                <label htmlFor="ssn" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="ssn" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Social Security Number
                 </label>
                 <input
@@ -220,7 +220,7 @@ export default function SignupPage() {
               </div>
 
               <div>
-                <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Street Address
                 </label>
                 <input
@@ -233,7 +233,7 @@ export default function SignupPage() {
 
               <div className="grid grid-cols-6 gap-4">
                 <div className="col-span-3">
-                  <label htmlFor="city" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     City
                   </label>
                   <input
@@ -245,7 +245,7 @@ export default function SignupPage() {
                 </div>
 
                 <div className="col-span-1">
-                  <label htmlFor="state" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="state" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     State
                   </label>
                   <input
@@ -264,7 +264,7 @@ export default function SignupPage() {
                 </div>
 
                 <div className="col-span-2">
-                  <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     ZIP Code
                   </label>
                   <input
@@ -322,7 +322,7 @@ export default function SignupPage() {
           </div>
         </form>
 
-        <p className="text-center text-sm text-gray-600">
+        <p className="text-center text-sm text-gray-600 dark:text-gray-400">
           Already have an account?{" "}
           <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
             Sign in
