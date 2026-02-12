@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { protectedProcedure, router } from "../trpc";
 import { db } from "@/lib/db";
 import { accounts, transactions } from "@/lib/db/schema";
+import { isValidCardNumber } from "@/lib/validation";
 import { eq, and } from "drizzle-orm";
 
 function generateAccountNumber(): string {
@@ -78,11 +79,19 @@ export const accountRouter = router({
       z.object({
         accountId: z.number(),
         amount: z.number().positive(),
-        fundingSource: z.object({
-          type: z.enum(["card", "bank"]),
-          accountNumber: z.string(),
-          routingNumber: z.string().optional(),
-        }),
+        fundingSource: z
+          .object({
+            type: z.enum(["card", "bank"]),
+            accountNumber: z.string(),
+            routingNumber: z.string().optional(),
+          })
+          .refine(
+            (data) => {
+              if (data.type !== "card") return true;
+              return isValidCardNumber(data.accountNumber);
+            },
+            { message: "Invalid card number", path: ["accountNumber"] }
+          ),
       })
     )
     .mutation(async ({ input, ctx }) => {

@@ -48,3 +48,19 @@
 - **Client validation**: Added `validateDateOfBirth()` in `lib/validation.ts` with the same rules, used in the signup form's `register()`.
 - **Date picker constraint**: Set `max={getMaxDateOfBirth()}` on the date input so the picker cannot select dates after 18 years ago.
 - **Helper text**: Added "You must be at least 18 years old" under the date of birth field.
+
+## VAL-206: Card Number Validation
+
+### Problems
+
+- **No Luhn checksum validation**: Card numbers were validated only by length (16 digits) and prefix (4 or 5). Numbers with invalid Luhn checksums (e.g. 4111111111111112) were accepted, causing failed transactions.
+- **No server-side validation**: The `fundAccount` mutation accepted any string for `accountNumber` when type was "card"—client checks could be bypassed.
+- **Narrow prefix check**: Only Visa (4) and Mastercard (5) prefixes were allowed, rejecting Amex, Discover, and other valid cards.
+- **Length too strict**: Exactly 16 digits was required, rejecting Amex (15 digits).
+
+### Fixes
+
+- **Luhn algorithm**: Implemented Luhn (mod 10) checksum validation in `lib/validation.ts` to reject invalid card numbers.
+- **Shared validation**: Added `validateCardNumber()` and `isValidCardNumber()` with format, length (13/15/16/19), Luhn, and network prefix checks (Visa, Mastercard, Amex, Discover).
+- **Client validation**: Updated `FundingModal` to use `validateCardNumber()` when funding type is "card" instead of the old regex/prefix validation.
+- **Server validation**: Added a Zod `.refine()` on `fundingSource` in `account.ts` that calls `isValidCardNumber()` when type is "card".
