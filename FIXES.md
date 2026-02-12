@@ -64,3 +64,14 @@
 - **Shared validation**: Added `validateCardNumber()` and `isValidCardNumber()` with format, length (13/15/16/19), Luhn, and network prefix checks (Visa, Mastercard, Amex, Discover).
 - **Client validation**: Updated `FundingModal` to use `validateCardNumber()` when funding type is "card" instead of the old regex/prefix validation.
 - **Server validation**: Added a Zod `.refine()` on `fundingSource` in `account.ts` that calls `isValidCardNumber()` when type is "card".
+
+## VAL-207: Routing Number Optional
+
+### Problems
+
+- **No server-side enforcement**: The `fundAccount` mutation used `routingNumber: z.string().optional()`. Bank transfers could be submitted without a routing number via direct API calls (e.g. Postman), bypassing client validation.
+- **Failed ACH transfers**: Bank transfers without routing numbers would fail at the ACH processor, causing support issues and customer confusion.
+
+### Fixes
+
+- **Server validation**: Added a second `.refine()` on the `fundingSource` schema that, when `type === "bank"`, requires `routingNumber` to be present and exactly 9 digits. Requests without a valid routing number are now rejected with a clear error message.
