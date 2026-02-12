@@ -91,6 +91,13 @@ export const accountRouter = router({
               return isValidCardNumber(data.accountNumber);
             },
             { message: "Invalid card number", path: ["accountNumber"] }
+          )
+          .refine(
+            (data) => {
+              if (data.type !== "bank") return true;
+              return !!data.routingNumber && /^\d{9}$/.test(data.routingNumber);
+            },
+            { message: "Routing number is required for bank transfers and must be 9 digits", path: ["routingNumber"] }
           ),
       })
     )
