@@ -7,11 +7,25 @@ import { db } from "@/lib/db";
 import { users, sessions } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
+const COMMON_TLD_TYPOS = [".con", ".cmo", ".ocm", ".comm", ".coom", ".comn"];
+
+const emailSchema = z
+  .string()
+  .email("Invalid email address")
+  .transform((val) => val.toLowerCase().trim())
+  .refine(
+    (email) => {
+      const domain = email.split("@")[1] || "";
+      return !COMMON_TLD_TYPOS.some((typo) => domain.endsWith(typo));
+    },
+    { message: "Please check your email domain (e.g. .com instead of .con)" }
+  );
+
 export const authRouter = router({
   signup: publicProcedure
     .input(
       z.object({
-        email: z.string().email().toLowerCase(),
+        email: emailSchema,
         password: z.string().min(8),
         firstName: z.string().min(1),
         lastName: z.string().min(1),
@@ -78,7 +92,7 @@ export const authRouter = router({
   login: publicProcedure
     .input(
       z.object({
-        email: z.string().email(),
+        email: emailSchema,
         password: z.string(),
       })
     )
