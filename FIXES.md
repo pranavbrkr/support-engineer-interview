@@ -32,3 +32,19 @@
 - **Consistent normalization**: Applied `emailSchema` to both signup and login so emails are always lowercased before storage and lookup.
 - **Client validation**: Added `lib/validation.ts` with `validateEmail()` using a stricter regex and the same TLD typo list, used by both signup and login forms.
 - **User notification**: Added the message "Emails are stored in lowercase (e.g. test@example.com)" under the signup email field to inform users about normalization.
+
+## VAL-202: Date of Birth Validation
+
+### Problems
+
+- **Future dates accepted**: Users could select future dates (e.g. 2025) as date of birth with no server-side rejection.
+- **No minimum age check**: There was no validation that the user was at least 18 years old, creating compliance risk for banking.
+- **Invalid date strings accepted**: Server used `z.string()` and accepted any string (e.g. invalid dates or malformed values).
+- **Client-side only required check**: The signup form only validated that the field was non-empty, with no past-date or age checks.
+
+### Fixes
+
+- **Server validation**: Added `dateOfBirthSchema` in `auth.ts` that validates YYYY-MM-DD format via regex, ensures a valid calendar date, rejects future dates, and requires the user to be at least 18 years old.
+- **Client validation**: Added `validateDateOfBirth()` in `lib/validation.ts` with the same rules, used in the signup form's `register()`.
+- **Date picker constraint**: Set `max={getMaxDateOfBirth()}` on the date input so the picker cannot select dates after 18 years ago.
+- **Helper text**: Added "You must be at least 18 years old" under the date of birth field.
