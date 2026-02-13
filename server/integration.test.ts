@@ -193,6 +193,32 @@ describe("account integration", () => {
     ).rejects.toThrow();
   });
 
+  it("fundAccount rejects string amount with leading zeros (VAL-209)", async () => {
+    const ctx = await createTestContext(`session=${authToken}`);
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.account.fundAccount({
+        accountId,
+        amount: "00010.00" as any,
+        fundingSource: { type: "card", accountNumber: "4111111111111111" },
+      })
+    ).rejects.toThrow();
+  });
+
+  it("fundAccount accepts valid string amount", async () => {
+    const ctx = await createTestContext(`session=${authToken}`);
+    const caller = appRouter.createCaller(ctx);
+
+    const result = await caller.account.fundAccount({
+      accountId,
+      amount: "25.50" as any,
+      fundingSource: { type: "card", accountNumber: "4111111111111111" },
+    });
+    expect(result.transaction).toBeDefined();
+    expect(result.newBalance).toBeGreaterThanOrEqual(25.5);
+  });
+
   it("getTransactions returns transactions newest first", async () => {
     const ctx = await createTestContext(`session=${authToken}`);
     const caller = appRouter.createCaller(ctx);
