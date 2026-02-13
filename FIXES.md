@@ -112,3 +112,22 @@
 - **Shared validation**: Added `validatePassword()` and `isValidPassword()` in `lib/validation.ts` requiring 8+ chars, uppercase, lowercase, digit, special character, and an expanded common-password blocklist.
 - **Server validation**: Replaced `z.string().min(8)` with `passwordSchema` using `isValidPassword()` in `auth.ts` signup input.
 - **Client validation**: Updated signup form to use `validatePassword()` instead of inline rules.
+
+## SEC-301: SSN Storage
+
+### Problems
+
+- **Plaintext storage**: SSNs were stored unencrypted in the database; a DB breach would expose all SSNs.
+- **API exposure**: Signup/login responses included the full user object with SSN via `...user`.
+- **Compliance risk**: PCI-DSS, GLBA, and similar frameworks require protection of SSNs.
+
+### Fixes
+
+- **Hash before storage**: SSN is now hashed with bcrypt (same as passwords) before `db.insert` in the signup flow.
+- **Exclude from responses**: Signup and login return a safe user object that omits both `password` and `ssn` via destructuring.
+
+### Migration for Existing Data
+
+- **One-way hashing**: Because bcrypt is one-way, existing plaintext SSNs cannot be hashed in place.
+- **Development**: Run `npm run db:clear` to wipe the database; all new signups will store hashed SSNs.
+- **Production**: A proper migration would require users to re-verify their SSN (e.g. through a secure flow), or accept the risk for legacy records until they re-engage.
