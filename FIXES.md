@@ -86,3 +86,18 @@
 ### Fixes
 
 - **Server validation**: Added a second `.refine()` on the `fundingSource` schema that, when `type === "bank"`, requires `routingNumber` to be present and exactly 9 digits. Requests without a valid routing number are now rejected with a clear error message.
+
+## VAL-208: Weak Password Requirements
+
+### Problems
+
+- **Server only checked length**: Signup used `z.string().min(8)`, allowing weak passwords like "aaaaaaaa" or "12345678" via direct API calls.
+- **Missing complexity rules**: No requirements for uppercase, lowercase, or special characters. Passwords like "Password1" (no special char) or "password123" were accepted.
+- **Tiny common-password list**: Only 3 entries ("password", "12345678", "qwerty"); variations like "password1", "password123" passed.
+- **Inconsistent validation**: Client had partial checks; server could be bypassed via API.
+
+### Fixes
+
+- **Shared validation**: Added `validatePassword()` and `isValidPassword()` in `lib/validation.ts` requiring 8+ chars, uppercase, lowercase, digit, special character, and an expanded common-password blocklist.
+- **Server validation**: Replaced `z.string().min(8)` with `passwordSchema` using `isValidPassword()` in `auth.ts` signup input.
+- **Client validation**: Updated signup form to use `validatePassword()` instead of inline rules.
