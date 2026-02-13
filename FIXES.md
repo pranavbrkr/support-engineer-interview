@@ -181,3 +181,15 @@
 ### Fixes
 
 - **Remove fake fallback**: When the fetch returns null after a successful insert, throw a `TRPCError` with code `INTERNAL_SERVER_ERROR` and a clear message instead of returning fabricated data.
+
+## PERF-405: Missing Transactions
+
+### Problems
+
+- **Stale cache after funding**: When a user funded an account, the dashboard refetched accounts (balances) but did not invalidate the `getTransactions` query. The transaction list kept showing cached data, so new transactions did not appear until the cache expired or the user navigated away and back.
+- **Impact**: Users could not verify all their transactions after multiple funding events.
+
+### Fixes
+
+- **Invalidate transactions on funding success**: In the dashboard's FundingModal `onSuccess` handler, call `utils.account.getTransactions.invalidate({ accountId })` so the transaction list refetches and displays new transactions immediately.
+- **Consistent invalidation**: Replaced `refetchAccounts()` with `utils.account.getAccounts.invalidate()` in the funding success flow for consistency with the query invalidation pattern.

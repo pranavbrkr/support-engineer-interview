@@ -14,6 +14,7 @@ export default function DashboardPage() {
   const [selectedAccountId, setSelectedAccountId] = useState<number | null>(null);
 
   const { data: accounts, refetch: refetchAccounts } = trpc.account.getAccounts.useQuery();
+  const utils = trpc.useUtils();
   const logoutMutation = trpc.auth.logout.useMutation();
 
   const handleLogout = async () => {
@@ -129,7 +130,10 @@ export default function DashboardPage() {
           onClose={() => setFundingAccountId(null)}
           onSuccess={() => {
             setFundingAccountId(null);
-            refetchAccounts();
+            utils.account.getAccounts.invalidate();
+            if (fundingAccountId) {
+              utils.account.getTransactions.invalidate({ accountId: fundingAccountId });
+            }
           }}
         />
       )}
