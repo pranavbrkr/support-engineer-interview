@@ -241,3 +241,14 @@
 ### Fixes
 
 - **Expiry buffer**: Added a 1-minute buffer—sessions are considered expired if they expire within the next minute (`expiresAt - 1 min <= now`). Provides tighter security while allowing a small buffer for clock skew.
+
+## PERF-404: Transaction Sorting
+
+### Problems
+
+- **No explicit ordering**: `getTransactions` returned transactions without an `orderBy` clause, so the database could return them in arbitrary order (e.g. insertion order or physical layout).
+- **Impact**: Transaction history appeared random, causing confusion when reviewing activity.
+
+### Fixes
+
+- **Sort by date descending**: Added `.orderBy(desc(transactions.createdAt))` so transactions are returned newest-first, matching typical expectations for transaction history.

@@ -5,7 +5,7 @@ import { protectedProcedure, router } from "../trpc";
 import { db } from "@/lib/db";
 import { accounts, transactions } from "@/lib/db/schema";
 import { isValidCardNumber } from "@/lib/validation";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 
 export function generateAccountNumber(): string {
   return randomInt(0, 1_000_000_000).toString().padStart(10, "0");
@@ -172,7 +172,8 @@ export const accountRouter = router({
       const accountTransactions = await db
         .select()
         .from(transactions)
-        .where(eq(transactions.accountId, input.accountId));
+        .where(eq(transactions.accountId, input.accountId))
+        .orderBy(desc(transactions.createdAt), desc(transactions.id));
 
       const enrichedTransactions = [];
       for (const transaction of accountTransactions) {
