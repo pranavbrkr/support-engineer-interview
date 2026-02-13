@@ -59,3 +59,7 @@ export function initDb() {
 
 // Initialize database on import
 initDb();
+
+export function closeDb(): void {
+  sqlite.close();
+}
