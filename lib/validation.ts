@@ -41,6 +41,28 @@ export function validateState(value: string): true | string {
   return true;
 }
 
+// E.164: +[country code 1-9][number], total 8-15 digits after +
+const PHONE_E164_REGEX = /^\+[1-9]\d{6,14}$/;
+
+export function isValidPhoneNumber(value: string): boolean {
+  const trimmed = value?.trim();
+  if (!trimmed) return false;
+  // Accept E.164 (+1234567890) or 10-digit US local (5551234567 -> +15551234567)
+  if (PHONE_E164_REGEX.test(trimmed)) return true;
+  if (/^\d{10}$/.test(trimmed)) return true; // US without country code
+  return false;
+}
+
+export function validatePhoneNumber(value: string): true | string {
+  if (!value?.trim()) return "Phone number is required";
+  const trimmed = value.trim();
+  if (PHONE_E164_REGEX.test(trimmed)) return true;
+  if (/^\d{10}$/.test(trimmed)) return true;
+  if (!/^\+?\d+$/.test(trimmed)) return "Phone number must contain only digits (use + for international, e.g. +15551234567)";
+  if (trimmed.length < 10 || trimmed.length > 15) return "Phone number must be 10-15 digits (e.g. +15551234567 for US)";
+  return "Use E.164 format with country code (e.g. +15551234567 for US)";
+}
+
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 const MINIMUM_AGE = 18;
 

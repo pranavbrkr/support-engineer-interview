@@ -5,7 +5,7 @@ import { TRPCError } from "@trpc/server";
 import { protectedProcedure, publicProcedure, router } from "../trpc";
 import { db } from "@/lib/db";
 import { users, sessions } from "@/lib/db/schema";
-import { isValidPassword, isValidState } from "@/lib/validation";
+import { isValidPassword, isValidState, isValidPhoneNumber } from "@/lib/validation";
 import { eq } from "drizzle-orm";
 
 const COMMON_TLD_TYPOS = [".con", ".cmo", ".ocm", ".comm", ".coom", ".comn"];
@@ -68,7 +68,12 @@ export const authRouter = router({
         password: passwordSchema,
         firstName: z.string().min(1),
         lastName: z.string().min(1),
-        phoneNumber: z.string().regex(/^\+?\d{10,15}$/),
+        phoneNumber: z
+          .string()
+          .transform((val) => (val.match(/^\d{10}$/) ? `+1${val}` : val.trim()))
+          .refine(isValidPhoneNumber, {
+            message: "Invalid phone number. Use E.164 format (e.g. +15551234567) or 10-digit US number",
+          }),
         dateOfBirth: dateOfBirthSchema,
         ssn: z.string().regex(/^\d{9}$/),
         address: z.string().min(1),
