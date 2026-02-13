@@ -134,7 +134,7 @@ export const accountRouter = router({
       // Fetch the created transaction
       const transaction = await db.select().from(transactions).orderBy(transactions.createdAt).limit(1).get();
 
-      const newBalance = account.balance + amount;
+      const newBalance = Math.round((account.balance + amount) * 100) / 100;
 
       // Update account balance
       await db
