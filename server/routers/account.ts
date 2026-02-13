@@ -4,7 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { protectedProcedure, router } from "../trpc";
 import { db } from "@/lib/db";
 import { accounts, transactions } from "@/lib/db/schema";
-import { isValidCardNumber } from "@/lib/validation";
+import { isValidCardNumber, validateAmountInput } from "@/lib/validation";
 import { eq, and, desc } from "drizzle-orm";
 
 export function generateAccountNumber(): string {
@@ -74,7 +74,14 @@ export const accountRouter = router({
     .input(
       z.object({
         accountId: z.number(),
-        amount: z.number().positive(),
+        amount: z.union([
+          z.string().refine((val) => validateAmountInput(val) === true, {
+            message: "Invalid amount. Avoid leading zeros (e.g. 10.00 not 010.00). Must be $0.01–$10,000.",
+          }),
+          z.number().positive().refine((n) => n >= 0.01 && n <= 10000, {
+            message: "Amount must be $0.01–$10,000",
+          }),
+        ]).transform((val) => (typeof val === "string" ? parseFloat(val) : val)),
         fundingSource: z
           .object({
             type: z.enum(["card", "bank"]),

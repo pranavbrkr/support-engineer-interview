@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { trpc } from "@/lib/trpc/client";
-import { validateCardNumber } from "@/lib/validation";
+import { validateCardNumber, validateAmountInput } from "@/lib/validation";
 
 interface FundingModalProps {
   accountId: number;
@@ -71,18 +71,7 @@ export function FundingModal({ accountId, onClose, onSuccess }: FundingModalProp
               <input
                 {...register("amount", {
                   required: "Amount is required",
-                  pattern: {
-                    value: /^\d+\.?\d{0,2}$/,
-                    message: "Invalid amount format",
-                  },
-                  min: {
-                    value: 0.01,
-                    message: "Amount must be at least $0.01",
-                  },
-                  max: {
-                    value: 10000,
-                    message: "Amount cannot exceed $10,000",
-                  },
+                  validate: validateAmountInput,
                 })}
                 type="text"
                 className="pl-7 block w-full rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-2 border"
