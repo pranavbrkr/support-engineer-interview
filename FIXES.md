@@ -263,3 +263,28 @@
 ### Fixes
 
 - **Use existing account**: The account was already loaded for authorization. Reuse `account.accountType` instead of querying in the loop. Reduced from 1 + N queries to 2 queries total (account + transactions).
+
+## VAL-203: State Code Validation
+
+### Problems
+
+- **Any 2 letters accepted**: Server and client only validated length and format (`/^[A-Z]{2}$/`), so invalid codes like "XX" or "ZZ" were accepted.
+- **Impact**: Address verification issues for banking communications; invalid state codes in customer data.
+
+### Fixes
+
+- **US state allowlist**: Added `isValidState()` and `validateState()` in `lib/validation.ts` with a whitelist of valid USPS 2-letter codes (50 states + DC).
+- **Server and client**: Auth router uses `stateSchema` with `.refine(isValidState)`. Signup form uses `validate: validateState`.
+
+## VAL-204: Phone Number Format
+
+### Problems
+
+- **Inconsistent validation**: Server accepted `/^\+?\d{10,15}$/` (optional +, 10-15 digits) while client only allowed `/^\d{10}$/` (exactly 10 digits). International numbers like `+15551234567` failed on client.
+- **No format validation**: Any string of digits in range was accepted; no E.164 or country-code structure.
+
+### Fixes
+
+- **Shared E.164-style validation**: Added `isValidPhoneNumber()` and `validatePhoneNumber()` in `lib/validation.ts`. Accepts E.164 format (`+[1-9]\d{6,14}`) or 10-digit US numbers.
+- **Normalization**: Server transforms 10-digit US input to `+1` prefix for consistent storage.
+- **Aligned client and server**: Both use the shared validation; international numbers now work on client and server.
