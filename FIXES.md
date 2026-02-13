@@ -1,5 +1,7 @@
 # Bug Fixes Documentation
 
+This document records bugs identified in the SecureBank application (typically from `CHALLENGE.md` or related sources), the problems they caused, and the fixes applied. Each entry is organized by ticket ID and includes a **Problems** section describing the issues and a **Fixes** section describing the changes made.
+
 ## UI-101: Dark Mode Text Visibility
 
 ### Problems
@@ -288,3 +290,15 @@
 - **Shared E.164-style validation**: Added `isValidPhoneNumber()` and `validatePhoneNumber()` in `lib/validation.ts`. Accepts E.164 format (`+[1-9]\d{6,14}`) or 10-digit US numbers.
 - **Normalization**: Server transforms 10-digit US input to `+1` prefix for consistent storage.
 - **Aligned client and server**: Both use the shared validation; international numbers now work on client and server.
+
+## VAL-209: Amount Input Leading Zeros
+
+### Problems
+
+- **Multiple leading zeros accepted**: System accepted amounts like `00010.00`, `001.50`, or `01`, which are confusing and inconsistent with standard currency display.
+
+### Fixes
+
+- **Shared validator**: Added `validateAmountInput()` in `lib/validation.ts` that rejects amounts with leading zeros (via `/^0+\d/`), validates format (up to 2 decimals), and enforces $0.01–$10,000 range.
+- **Client validation**: Replaced FundingModal amount `pattern`/`min`/`max` with `validate: validateAmountInput`.
+- **Server validation**: `fundAccount` now accepts both string and number; string amounts are validated with `validateAmountInput` before parsing, rejecting leading zeros via direct API calls.
