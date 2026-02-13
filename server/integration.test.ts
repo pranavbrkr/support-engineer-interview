@@ -101,6 +101,88 @@ describe("auth integration", () => {
       })
     ).rejects.toThrow(TRPCError);
   });
+
+  it("login works with different email casing (VAL-201)", async () => {
+    const ctx = await createTestContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const signupInput = { ...validSignupInput, email: `TestUser${Date.now()}@Example.COM` };
+    await caller.auth.signup(signupInput);
+
+    const result = await caller.auth.login({
+      email: signupInput.email.toLowerCase(),
+      password: signupInput.password,
+    });
+    expect(result.token).toBeDefined();
+  });
+
+  it("signup rejects invalid state code (VAL-203)", async () => {
+    const ctx = await createTestContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.auth.signup({ ...validSignupInput, state: "XX" })
+    ).rejects.toThrow();
+  });
+
+  it("signup rejects invalid phone (VAL-204)", async () => {
+    const ctx = await createTestContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.auth.signup({ ...validSignupInput, phoneNumber: "123" })
+    ).rejects.toThrow();
+  });
+
+  it("signup rejects weak password (VAL-208)", async () => {
+    const ctx = await createTestContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.auth.signup({ ...validSignupInput, password: "password123" })
+    ).rejects.toThrow();
+  });
+
+  it("signup rejects future date of birth (VAL-202)", async () => {
+    const ctx = await createTestContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.auth.signup({ ...validSignupInput, dateOfBirth: "2030-01-01" })
+    ).rejects.toThrow();
+  });
+
+  it("single session: new login invalidates old token (SEC-304)", async () => {
+    const ctx = await createTestContext();
+    const caller = appRouter.createCaller(ctx);
+    const signup = await caller.auth.signup(validSignupInput);
+    const firstToken = signup.token;
+
+    const loginResult = await caller.auth.login({
+      email: validSignupInput.email,
+      password: validSignupInput.password,
+    });
+    const secondToken = loginResult.token;
+
+    const ctxOld = await createTestContext(`session=${firstToken}`);
+    const callerOld = appRouter.createCaller(ctxOld);
+
+    await expect(callerOld.account.getAccounts()).rejects.toThrow();
+  });
+
+  it("logout invalidates session (PERF-402)", async () => {
+    const ctx = await createTestContext();
+    const caller = appRouter.createCaller(ctx);
+    const signup = await caller.auth.signup(validSignupInput);
+
+    const authCtx = await createTestContext(`session=${signup.token}`);
+    const authCaller = appRouter.createCaller(authCtx);
+    await authCaller.auth.logout();
+
+    const ctxAfter = await createTestContext(`session=${signup.token}`);
+    const callerAfter = appRouter.createCaller(ctxAfter);
+    await expect(callerAfter.account.getAccounts()).rejects.toThrow();
+  });
 });
 
 describe("account integration", () => {
@@ -189,6 +271,32 @@ describe("account integration", () => {
           type: "card",
           accountNumber: "4111111111111112", // Invalid Luhn
         },
+      })
+    ).rejects.toThrow();
+  });
+
+  it("fundAccount rejects zero amount (VAL-205)", async () => {
+    const ctx = await createTestContext(`session=${authToken}`);
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.account.fundAccount({
+        accountId,
+        amount: 0,
+        fundingSource: { type: "card", accountNumber: "4111111111111111" },
+      })
+    ).rejects.toThrow();
+  });
+
+  it("fundAccount rejects amount over 10000", async () => {
+    const ctx = await createTestContext(`session=${authToken}`);
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.account.fundAccount({
+        accountId,
+        amount: 10001,
+        fundingSource: { type: "card", accountNumber: "4111111111111111" },
       })
     ).rejects.toThrow();
   });

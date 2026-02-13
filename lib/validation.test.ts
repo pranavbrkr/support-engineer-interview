@@ -8,6 +8,10 @@ import {
   validateCardNumber,
   isValidCardNumber,
   validateAmountInput,
+  validateState,
+  isValidState,
+  validatePhoneNumber,
+  isValidPhoneNumber,
 } from "./validation";
 
 describe("validateEmail", () => {
@@ -233,5 +237,52 @@ describe("validateAmountInput", () => {
 
   it("rejects above maximum", () => {
     expect(validateAmountInput("10001")).toBe("Amount cannot exceed $10,000");
+  });
+});
+
+describe("validateState / isValidState (VAL-203)", () => {
+  it("accepts valid US state codes", () => {
+    expect(validateState("CA")).toBe(true);
+    expect(validateState("ca")).toBe(true);
+    expect(validateState("NY")).toBe(true);
+    expect(validateState("tx")).toBe(true);
+    expect(isValidState("CA")).toBe(true);
+  });
+
+  it("rejects invalid state codes", () => {
+    expect(validateState("XX")).toBe("Invalid state code. Use 2-letter US state abbreviation (e.g. CA, NY)");
+    expect(validateState("ZZ")).toBe("Invalid state code. Use 2-letter US state abbreviation (e.g. CA, NY)");
+    expect(isValidState("XX")).toBe(false);
+  });
+
+  it("rejects empty or wrong length", () => {
+    expect(validateState("")).toBe("State is required");
+    expect(validateState("C")).toBe("Use 2-letter state code (e.g. CA)");
+    expect(validateState("CAL")).toBe("Use 2-letter state code (e.g. CA)");
+  });
+});
+
+describe("validatePhoneNumber / isValidPhoneNumber (VAL-204)", () => {
+  it("accepts E.164 format", () => {
+    expect(validatePhoneNumber("+15551234567")).toBe(true);
+    expect(validatePhoneNumber("+442071234567")).toBe(true);
+    expect(isValidPhoneNumber("+15551234567")).toBe(true);
+  });
+
+  it("accepts 10-digit US number", () => {
+    expect(validatePhoneNumber("5551234567")).toBe(true);
+    expect(isValidPhoneNumber("5551234567")).toBe(true);
+  });
+
+  it("rejects empty", () => {
+    expect(validatePhoneNumber("")).toBe("Phone number is required");
+    expect(isValidPhoneNumber("")).toBe(false);
+  });
+
+  it("rejects invalid format", () => {
+    expect(validatePhoneNumber("123")).not.toBe(true);
+    expect(validatePhoneNumber("+123")).not.toBe(true);
+    expect(validatePhoneNumber("555-123-4567")).not.toBe(true);
+    expect(isValidPhoneNumber("123")).toBe(false);
   });
 });
