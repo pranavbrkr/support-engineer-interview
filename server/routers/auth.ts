@@ -127,7 +127,8 @@ export const authRouter = router({
         (ctx.res as Headers).set("Set-Cookie", `session=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=604800`);
       }
 
-      return { user: { ...user, password: undefined }, token };
+      const { password: _p, ssn: _s, ...safeUser } = user;
+      return { user: safeUser, token };
     }),
 
   login: publicProcedure
@@ -175,7 +176,8 @@ export const authRouter = router({
         (ctx.res as Headers).set("Set-Cookie", `session=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=604800`);
       }
 
-      return { user: { ...user, password: undefined }, token };
+      const { password: _p, ssn: _s, ...safeUser } = user;
+      return { user: safeUser, token };
     }),
 
   logout: publicProcedure.mutation(async ({ ctx }) => {
