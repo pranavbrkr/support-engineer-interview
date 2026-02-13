@@ -22,6 +22,47 @@ export function validateEmail(value: string): true | string {
   return true;
 }
 
+// US state codes (50 states + DC) - USPS abbreviations
+const VALID_STATE_CODES = new Set([
+  "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA",
+  "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR",
+  "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+]);
+
+export function isValidState(value: string): boolean {
+  return VALID_STATE_CODES.has(value?.trim().toUpperCase());
+}
+
+export function validateState(value: string): true | string {
+  if (!value?.trim()) return "State is required";
+  const code = value.trim().toUpperCase();
+  if (code.length !== 2) return "Use 2-letter state code (e.g. CA)";
+  if (!VALID_STATE_CODES.has(code)) return "Invalid state code. Use 2-letter US state abbreviation (e.g. CA, NY)";
+  return true;
+}
+
+// E.164: +[country code 1-9][number], total 8-15 digits after +
+const PHONE_E164_REGEX = /^\+[1-9]\d{6,14}$/;
+
+export function isValidPhoneNumber(value: string): boolean {
+  const trimmed = value?.trim();
+  if (!trimmed) return false;
+  // Accept E.164 (+1234567890) or 10-digit US local (5551234567 -> +15551234567)
+  if (PHONE_E164_REGEX.test(trimmed)) return true;
+  if (/^\d{10}$/.test(trimmed)) return true; // US without country code
+  return false;
+}
+
+export function validatePhoneNumber(value: string): true | string {
+  if (!value?.trim()) return "Phone number is required";
+  const trimmed = value.trim();
+  if (PHONE_E164_REGEX.test(trimmed)) return true;
+  if (/^\d{10}$/.test(trimmed)) return true;
+  if (!/^\+?\d+$/.test(trimmed)) return "Phone number must contain only digits (use + for international, e.g. +15551234567)";
+  if (trimmed.length < 10 || trimmed.length > 15) return "Phone number must be 10-15 digits (e.g. +15551234567 for US)";
+  return "Use E.164 format with country code (e.g. +15551234567 for US)";
+}
+
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 const MINIMUM_AGE = 18;
 

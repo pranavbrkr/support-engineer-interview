@@ -5,7 +5,7 @@ import { TRPCError } from "@trpc/server";
 import { protectedProcedure, publicProcedure, router } from "../trpc";
 import { db } from "@/lib/db";
 import { users, sessions } from "@/lib/db/schema";
-import { isValidPassword } from "@/lib/validation";
+import { isValidPassword, isValidState, isValidPhoneNumber } from "@/lib/validation";
 import { eq } from "drizzle-orm";
 
 const COMMON_TLD_TYPOS = [".con", ".cmo", ".ocm", ".comm", ".coom", ".comn"];
@@ -68,12 +68,21 @@ export const authRouter = router({
         password: passwordSchema,
         firstName: z.string().min(1),
         lastName: z.string().min(1),
-        phoneNumber: z.string().regex(/^\+?\d{10,15}$/),
+        phoneNumber: z
+          .string()
+          .transform((val) => (val.match(/^\d{10}$/) ? `+1${val}` : val.trim()))
+          .refine(isValidPhoneNumber, {
+            message: "Invalid phone number. Use E.164 format (e.g. +15551234567) or 10-digit US number",
+          }),
         dateOfBirth: dateOfBirthSchema,
         ssn: z.string().regex(/^\d{9}$/),
         address: z.string().min(1),
         city: z.string().min(1),
-        state: z.string().length(2).toUpperCase(),
+        state: z
+          .string()
+          .length(2, "Use 2-letter state code")
+          .transform((val) => val.toUpperCase())
+          .refine(isValidState, { message: "Invalid state code. Use 2-letter US state abbreviation (e.g. CA, NY)" }),
         zipCode: z.string().regex(/^\d{5}$/),
       })
     )

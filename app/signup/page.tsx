@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { trpc } from "@/lib/trpc/client";
-import { validateEmail, validatePassword, validateDateOfBirth, getMaxDateOfBirth } from "@/lib/validation";
+import { validateEmail, validatePassword, validateDateOfBirth, validateState, validatePhoneNumber, getMaxDateOfBirth } from "@/lib/validation";
 import Link from "next/link";
 
 type SignupFormData = {
@@ -162,13 +162,10 @@ export default function SignupPage() {
                   Phone Number
                 </label>
                 <input
-                  {...register("phoneNumber", {
-                    required: "Phone number is required",
-                    pattern: {
-                      value: /^\d{10}$/,
-                      message: "Phone number must be 10 digits",
-                    },
-                  })}
+                    {...register("phoneNumber", {
+                      required: "Phone number is required",
+                      validate: validatePhoneNumber,
+                    })}
                   type="tel"
                   placeholder="1234567890"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
@@ -248,10 +245,7 @@ export default function SignupPage() {
                   <input
                     {...register("state", {
                       required: "State is required",
-                      pattern: {
-                        value: /^[A-Z]{2}$/,
-                        message: "Use 2-letter state code",
-                      },
+                      validate: validateState,
                     })}
                     type="text"
                     placeholder="CA"
