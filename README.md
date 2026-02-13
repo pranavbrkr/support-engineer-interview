@@ -22,8 +22,10 @@ npm run dev
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
+- `npm test` - Run unit and integration tests (Vitest)
 - `npm run db:list-users` - List all users in database
 - `npm run db:clear` - Clear all database data
-- `npm test` - Run tests (you'll need to configure this)
 
-Good luck with the challenge!
+## Bug Fixes and Tests
+
+All 24 reported issues have been investigated, fixed, and documented. See [FIXES.md](./FIXES.md) for root cause analysis, resolutions, and preventive measures. Tests (67 total) verify the fixes—run with `npm test`.
