@@ -5,6 +5,7 @@ import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../trpc";
 import { db } from "@/lib/db";
 import { users, sessions } from "@/lib/db/schema";
+import { isValidPassword } from "@/lib/validation";
 import { eq } from "drizzle-orm";
 
 const COMMON_TLD_TYPOS = [".con", ".cmo", ".ocm", ".comm", ".coom", ".comn"];
@@ -55,12 +56,16 @@ const dateOfBirthSchema = z
     { message: `You must be at least ${MINIMUM_AGE} years old to open an account` }
   );
 
+const passwordSchema = z.string().refine(isValidPassword, {
+  message: "Password must be at least 8 characters with uppercase, lowercase, number, and special character",
+});
+
 export const authRouter = router({
   signup: publicProcedure
     .input(
       z.object({
         email: emailSchema,
-        password: z.string().min(8),
+        password: passwordSchema,
         firstName: z.string().min(1),
         lastName: z.string().min(1),
         phoneNumber: z.string().regex(/^\+?\d{10,15}$/),
