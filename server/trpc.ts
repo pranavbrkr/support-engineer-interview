@@ -45,7 +45,7 @@ export async function createContext(opts: CreateNextContextOptions | FetchCreate
   );
   token = cookiesObj.session;
 
-  const SESSION_EXPIRY_BUFFER_MS = 5 * 60 * 1000; // 5 minutes - consider expired slightly early for safety
+  const SESSION_EXPIRY_BUFFER_MS = 60 * 1000; // 1 minute - consider expired slightly early for tighter security
 
   let user = null;
   if (token) {
