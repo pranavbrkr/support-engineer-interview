@@ -157,3 +157,16 @@
 ### Fixes
 
 - **Safe text rendering**: Replaced `dangerouslySetInnerHTML` with standard JSX interpolation `{transaction.description ?? "-"}`, so React escapes the value and treats it as text.
+
+## SEC-304: Session Management
+
+### Problems
+
+- **Multiple valid sessions per user**: Every signup and login created a new session without removing existing ones. Users could accumulate many active sessions across devices.
+- **No invalidation**: There was no way to revoke sessions (e.g. lost device or suspected compromise). Stolen sessions remained valid until expiry (7 days).
+- **Security risk**: Unauthorized access from compromised sessions could not be remediated.
+
+### Fixes
+
+- **Single session per user**: On signup and login, all existing sessions for that user are deleted before creating the new session. Only one active session is allowed at a time; logging in elsewhere logs out the previous device.
+- **logoutAll procedure**: Added a protected mutation `auth.logoutAll` that deletes all sessions for the current user and clears the session cookie, logging the user out everywhere including the current device. Enables a future "Log out from all devices" UI.
