@@ -45,6 +45,8 @@ export async function createContext(opts: CreateNextContextOptions | FetchCreate
   );
   token = cookiesObj.session;
 
+  const SESSION_EXPIRY_BUFFER_MS = 60 * 1000; // 1 minute - consider expired slightly early for tighter security
+
   let user = null;
   if (token) {
     try {
@@ -53,8 +55,10 @@ export async function createContext(opts: CreateNextContextOptions | FetchCreate
       };
 
       const session = await db.select().from(sessions).where(eq(sessions.token, token)).get();
+      const now = Date.now();
+      const expiresAtMs = session ? new Date(session.expiresAt).getTime() : 0;
 
-      if (session && new Date(session.expiresAt) > new Date()) {
+      if (session && expiresAtMs - SESSION_EXPIRY_BUFFER_MS > now) {
         user = await db.select().from(users).where(eq(users.id, decoded.userId)).get();
         const expiresIn = new Date(session.expiresAt).getTime() - new Date().getTime();
         if (expiresIn < 60000) {

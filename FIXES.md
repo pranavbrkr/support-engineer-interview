@@ -49,17 +49,6 @@
 - **Date picker constraint**: Set `max={getMaxDateOfBirth()}` on the date input so the picker cannot select dates after 18 years ago.
 - **Helper text**: Added "You must be at least 18 years old" under the date of birth field.
 
-## VAL-205: Zero Amount Funding
-
-### Problems
-
-- **Client allowed $0.00**: The amount input used `min: 0.0`, which accepts values ≥ 0, so $0.00 passed validation. Users could submit and then see a server error instead of an inline form message.
-- **Misleading validation**: The error message said "Amount must be at least $0.01" but the rule allowed 0.
-
-### Fixes
-
-- **Client validation**: Changed `min` from `0.0` to `0.01` in `FundingModal` so zero-amount submissions are rejected with an inline error before the request is sent.
-
 ## VAL-206: Card Number Validation
 
 ### Problems
@@ -76,17 +65,6 @@
 - **Client validation**: Updated `FundingModal` to use `validateCardNumber()` when funding type is "card" instead of the old regex/prefix validation.
 - **Server validation**: Added a Zod `.refine()` on `fundingSource` in `account.ts` that calls `isValidCardNumber()` when type is "card".
 
-## VAL-210: Card Type Detection
-
-### Problems
-
-- **Narrow prefix check**: Original validation only accepted Visa (4) and Mastercard (5), rejecting Amex, Discover, and other valid cards.
-- **Length too strict**: Exactly 16 digits was required, rejecting Amex (15 digits).
-
-### Fixes
-
-- **Resolved as part of VAL-206**: The card validation added in VAL-206 includes full card type detection for Visa, Mastercard, Amex, and Discover, with appropriate lengths (13, 15, 16, 19 digits). No additional changes required.
-
 ## VAL-207: Routing Number Optional
 
 ### Problems
@@ -97,6 +75,17 @@
 ### Fixes
 
 - **Server validation**: Added a second `.refine()` on the `fundingSource` schema that, when `type === "bank"`, requires `routingNumber` to be present and exactly 9 digits. Requests without a valid routing number are now rejected with a clear error message.
+
+## VAL-205: Zero Amount Funding
+
+### Problems
+
+- **Client allowed $0.00**: The amount input used `min: 0.0`, which accepts values ≥ 0, so $0.00 passed validation. Users could submit and then see a server error instead of an inline form message.
+- **Misleading validation**: The error message said "Amount must be at least $0.01" but the rule allowed 0.
+
+### Fixes
+
+- **Client validation**: Changed `min` from `0.0` to `0.01` in `FundingModal` so zero-amount submissions are rejected with an inline error before the request is sent.
 
 ## VAL-208: Weak Password Requirements
 
@@ -112,6 +101,17 @@
 - **Shared validation**: Added `validatePassword()` and `isValidPassword()` in `lib/validation.ts` requiring 8+ chars, uppercase, lowercase, digit, special character, and an expanded common-password blocklist.
 - **Server validation**: Replaced `z.string().min(8)` with `passwordSchema` using `isValidPassword()` in `auth.ts` signup input.
 - **Client validation**: Updated signup form to use `validatePassword()` instead of inline rules.
+
+## VAL-210: Card Type Detection
+
+### Problems
+
+- **Narrow prefix check**: Original validation only accepted Visa (4) and Mastercard (5), rejecting Amex, Discover, and other valid cards.
+- **Length too strict**: Exactly 16 digits was required, rejecting Amex (15 digits).
+
+### Fixes
+
+- **Resolved as part of VAL-206**: The card validation added in VAL-206 includes full card type detection for Visa, Mastercard, Amex, and Discover, with appropriate lengths (13, 15, 16, 19 digits). No additional changes required.
 
 ## SEC-301: SSN Storage
 
@@ -219,3 +219,25 @@
 
 - **Remove redundant connection**: Removed the `conn` creation and `connections` array from `initDb()`. Schema creation now uses only the main `sqlite` connection.
 - **Add closeDb()**: Exported a `closeDb()` function that closes the main SQLite connection for graceful shutdown (e.g. in tests or on process exit).
+
+## PERF-402: Logout Issues
+
+### Problems
+
+- **Logout reported success without removing session**: When `ctx.user` existed, logout tried to get the token from the cookie to delete the session. If cookie parsing failed or the token was missing, the session was never deleted from the DB, but the response still returned "Logged out successfully".
+- **Impact**: Users believed they were logged out when their session remained active in the database.
+
+### Fixes
+
+- **Delete by userId**: When `ctx.user` exists, delete the session by `ctx.user.id` instead of by token. This reliably removes the session even when the cookie cannot be parsed or is missing.
+
+## PERF-403: Session Expiry
+
+### Problems
+
+- **Sessions valid until exact expiry**: The check `new Date(session.expiresAt) > new Date()` treated sessions as valid up to the exact expiry moment, with no buffer for clock skew or edge cases.
+- **Impact**: Security risk near session expiration; no safety margin.
+
+### Fixes
+
+- **Expiry buffer**: Added a 1-minute buffer—sessions are considered expired if they expire within the next minute (`expiresAt - 1 min <= now`). Provides tighter security while allowing a small buffer for clock skew.
