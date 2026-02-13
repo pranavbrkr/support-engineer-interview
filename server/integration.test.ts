@@ -192,4 +192,28 @@ describe("account integration", () => {
       })
     ).rejects.toThrow();
   });
+
+  it("getTransactions returns transactions newest first", async () => {
+    const ctx = await createTestContext(`session=${authToken}`);
+    const caller = appRouter.createCaller(ctx);
+
+    const amounts = Array.from({ length: 15 }, (_, i) => i + 1);
+    for (const amount of amounts) {
+      await caller.account.fundAccount({
+        accountId,
+        amount,
+        fundingSource: { type: "card", accountNumber: "4111111111111111" },
+      });
+    }
+
+    const result = await caller.account.getTransactions({ accountId });
+
+    expect(result).toHaveLength(15);
+    for (let i = 0; i < 15; i++) {
+      expect(result[i].amount).toBe(15 - i);
+    }
+
+    const createdAtTimestamps = result.map((t) => new Date(t.createdAt!).getTime());
+    expect(createdAtTimestamps).toEqual([...createdAtTimestamps].sort((a, b) => b - a));
+  });
 });
