@@ -170,3 +170,14 @@
 
 - **Single session per user**: On signup and login, all existing sessions for that user are deleted before creating the new session. Only one active session is allowed at a time; logging in elsewhere logs out the previous device.
 - **logoutAll procedure**: Added a protected mutation `auth.logoutAll` that deletes all sessions for the current user and clears the session cookie, logging the user out everywhere including the current device. Enables a future "Log out from all devices" UI.
+
+## PERF-401: Account Creation Error
+
+### Problems
+
+- **Fake fallback on fetch failure**: After inserting a new account, `createAccount` fetched it from the DB. If the fetch returned null (e.g. rare DB glitch), the code returned a hardcoded fallback object with `balance: 100` and `status: "pending"`.
+- **Incorrect balance display**: Users could see a $100 balance for an account that either wasn't created or couldn't be retrieved, causing confusion and support issues.
+
+### Fixes
+
+- **Remove fake fallback**: When the fetch returns null after a successful insert, throw a `TRPCError` with code `INTERNAL_SERVER_ERROR` and a clear message instead of returning fabricated data.
