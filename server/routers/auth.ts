@@ -107,9 +107,11 @@ export const authRouter = router({
       }
 
       // Create session
-      const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || "temporary-secret-for-interview", {
-        expiresIn: "7d",
-      });
+      const token = jwt.sign(
+        { userId: user.id, jti: crypto.randomUUID() },
+        process.env.JWT_SECRET || "temporary-secret-for-interview",
+        { expiresIn: "7d" }
+      );
 
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
@@ -157,9 +159,11 @@ export const authRouter = router({
         });
       }
 
-      const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || "temporary-secret-for-interview", {
-        expiresIn: "7d",
-      });
+      const token = jwt.sign(
+        { userId: user.id, jti: crypto.randomUUID() },
+        process.env.JWT_SECRET || "temporary-secret-for-interview",
+        { expiresIn: "7d" }
+      );
 
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
