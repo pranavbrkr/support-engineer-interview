@@ -7,7 +7,7 @@ import { accounts, transactions } from "@/lib/db/schema";
 import { isValidCardNumber } from "@/lib/validation";
 import { eq, and } from "drizzle-orm";
 
-function generateAccountNumber(): string {
+export function generateAccountNumber(): string {
   return randomInt(0, 1_000_000_000).toString().padStart(10, "0");
 }
 
