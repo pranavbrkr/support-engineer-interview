@@ -2,7 +2,7 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { TRPCError } from "@trpc/server";
-import { publicProcedure, router } from "../trpc";
+import { protectedProcedure, publicProcedure, router } from "../trpc";
 import { db } from "@/lib/db";
 import { users, sessions } from "@/lib/db/schema";
 import { isValidPassword } from "@/lib/validation";
@@ -215,5 +215,17 @@ export const authRouter = router({
     }
 
     return { success: true, message: ctx.user ? "Logged out successfully" : "No active session" };
+  }),
+
+  logoutAll: protectedProcedure.mutation(async ({ ctx }) => {
+    await db.delete(sessions).where(eq(sessions.userId, ctx.user.id));
+
+    if ("setHeader" in ctx.res) {
+      ctx.res.setHeader("Set-Cookie", `session=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0`);
+    } else {
+      (ctx.res as Headers).set("Set-Cookie", `session=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0`);
+    }
+
+    return { success: true, message: "Logged out from all devices" };
   }),
 });
