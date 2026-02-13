@@ -76,6 +76,17 @@
 - **Client validation**: Updated `FundingModal` to use `validateCardNumber()` when funding type is "card" instead of the old regex/prefix validation.
 - **Server validation**: Added a Zod `.refine()` on `fundingSource` in `account.ts` that calls `isValidCardNumber()` when type is "card".
 
+## VAL-210: Card Type Detection
+
+### Problems
+
+- **Narrow prefix check**: Original validation only accepted Visa (4) and Mastercard (5), rejecting Amex, Discover, and other valid cards.
+- **Length too strict**: Exactly 16 digits was required, rejecting Amex (15 digits).
+
+### Fixes
+
+- **Resolved as part of VAL-206**: The card validation added in VAL-206 includes full card type detection for Visa, Mastercard, Amex, and Discover, with appropriate lengths (13, 15, 16, 19 digits). No additional changes required.
+
 ## VAL-207: Routing Number Optional
 
 ### Problems
