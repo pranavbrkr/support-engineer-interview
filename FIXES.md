@@ -145,3 +145,15 @@
 - **Cryptographically secure RNG**: Replaced `Math.random()` with Node.js `crypto.randomInt(0, 1_000_000_000)` from the `node:crypto` module.
 - **Unchanged behavior**: The uniqueness loop (`while (!isUnique)`) remains in place to handle the extremely rare case of collision.
 - **Unit tests**: Added `server/routers/account.test.ts` to assert that generated account numbers are 10 digits and that successive calls produce different values.
+
+## SEC-303: XSS Vulnerability
+
+### Problems
+
+- **dangerouslySetInnerHTML on transaction descriptions**: `TransactionList.tsx` rendered `transaction.description` with `dangerouslySetInnerHTML`, executing any HTML or JavaScript in the string instead of displaying it as text.
+- **XSS risk**: If descriptions ever contained user-controlled or untrusted content (e.g. from future features, legacy data, or DB compromise), attackers could inject and execute scripts in other users' browsers.
+- **Unnecessary use**: Descriptions are plain text (e.g. "Funding from card"); HTML rendering was not required.
+
+### Fixes
+
+- **Safe text rendering**: Replaced `dangerouslySetInnerHTML` with standard JSX interpolation `{transaction.description ?? "-"}`, so React escapes the value and treats it as text.
