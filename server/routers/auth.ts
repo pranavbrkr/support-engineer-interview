@@ -5,7 +5,7 @@ import { TRPCError } from "@trpc/server";
 import { protectedProcedure, publicProcedure, router } from "../trpc";
 import { db } from "@/lib/db";
 import { users, sessions } from "@/lib/db/schema";
-import { isValidPassword } from "@/lib/validation";
+import { isValidPassword, isValidState } from "@/lib/validation";
 import { eq } from "drizzle-orm";
 
 const COMMON_TLD_TYPOS = [".con", ".cmo", ".ocm", ".comm", ".coom", ".comn"];
@@ -73,7 +73,11 @@ export const authRouter = router({
         ssn: z.string().regex(/^\d{9}$/),
         address: z.string().min(1),
         city: z.string().min(1),
-        state: z.string().length(2).toUpperCase(),
+        state: z
+          .string()
+          .length(2, "Use 2-letter state code")
+          .transform((val) => val.toUpperCase())
+          .refine(isValidState, { message: "Invalid state code. Use 2-letter US state abbreviation (e.g. CA, NY)" }),
         zipCode: z.string().regex(/^\d{5}$/),
       })
     )

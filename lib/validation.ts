@@ -22,6 +22,25 @@ export function validateEmail(value: string): true | string {
   return true;
 }
 
+// US state codes (50 states + DC) - USPS abbreviations
+const VALID_STATE_CODES = new Set([
+  "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA",
+  "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR",
+  "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+]);
+
+export function isValidState(value: string): boolean {
+  return VALID_STATE_CODES.has(value?.trim().toUpperCase());
+}
+
+export function validateState(value: string): true | string {
+  if (!value?.trim()) return "State is required";
+  const code = value.trim().toUpperCase();
+  if (code.length !== 2) return "Use 2-letter state code (e.g. CA)";
+  if (!VALID_STATE_CODES.has(code)) return "Invalid state code. Use 2-letter US state abbreviation (e.g. CA, NY)";
+  return true;
+}
+
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 const MINIMUM_AGE = 18;
 
