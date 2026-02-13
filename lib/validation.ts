@@ -41,6 +41,20 @@ export function validateState(value: string): true | string {
   return true;
 }
 
+const AMOUNT_FORMAT_REGEX = /^\d+\.?\d{0,2}$/;
+const AMOUNT_LEADING_ZEROS_REGEX = /^0+\d/; // matches 01, 001, 010.50
+
+export function validateAmountInput(value: string): true | string {
+  if (!value?.trim()) return "Amount is required";
+  const trimmed = value.trim();
+  if (!AMOUNT_FORMAT_REGEX.test(trimmed)) return "Invalid amount format (e.g. 10.00)";
+  if (AMOUNT_LEADING_ZEROS_REGEX.test(trimmed)) return "Avoid leading zeros (use 10.00 not 010.00)";
+  const num = parseFloat(trimmed);
+  if (num < 0.01) return "Amount must be at least $0.01";
+  if (num > 10000) return "Amount cannot exceed $10,000";
+  return true;
+}
+
 // E.164: +[country code 1-9][number], total 8-15 digits after +
 const PHONE_E164_REGEX = /^\+[1-9]\d{6,14}$/;
 

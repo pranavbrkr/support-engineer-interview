@@ -7,6 +7,7 @@ import {
   isValidPassword,
   validateCardNumber,
   isValidCardNumber,
+  validateAmountInput,
 } from "./validation";
 
 describe("validateEmail", () => {
@@ -184,5 +185,53 @@ describe("validateCardNumber / isValidCardNumber", () => {
     expect(validateCardNumber("4111-1111-1111-111a")).toBe(
       "Card number must contain only digits"
     );
+  });
+});
+
+describe("validateAmountInput", () => {
+  it("accepts valid amounts", () => {
+    expect(validateAmountInput("10.00")).toBe(true);
+    expect(validateAmountInput("0.50")).toBe(true);
+    expect(validateAmountInput("1")).toBe(true);
+    expect(validateAmountInput("1.5")).toBe(true);
+    expect(validateAmountInput("10000")).toBe(true);
+  });
+
+  it("rejects empty", () => {
+    expect(validateAmountInput("")).toBe("Amount is required");
+    expect(validateAmountInput("   ")).toBe("Amount is required");
+  });
+
+  it("rejects leading zeros (VAL-209)", () => {
+    expect(validateAmountInput("00010.00")).toBe(
+      "Avoid leading zeros (use 10.00 not 010.00)"
+    );
+    expect(validateAmountInput("001.50")).toBe(
+      "Avoid leading zeros (use 10.00 not 010.00)"
+    );
+    expect(validateAmountInput("01")).toBe(
+      "Avoid leading zeros (use 10.00 not 010.00)"
+    );
+    expect(validateAmountInput("001")).toBe(
+      "Avoid leading zeros (use 10.00 not 010.00)"
+    );
+  });
+
+  it("rejects invalid format", () => {
+    expect(validateAmountInput("10.999")).toBe(
+      "Invalid amount format (e.g. 10.00)"
+    );
+    expect(validateAmountInput("abc")).toBe(
+      "Invalid amount format (e.g. 10.00)"
+    );
+  });
+
+  it("rejects below minimum", () => {
+    expect(validateAmountInput("0")).toBe("Amount must be at least $0.01");
+    expect(validateAmountInput("0.00")).toBe("Amount must be at least $0.01");
+  });
+
+  it("rejects above maximum", () => {
+    expect(validateAmountInput("10001")).toBe("Amount cannot exceed $10,000");
   });
 });
