@@ -106,6 +106,9 @@ export const authRouter = router({
         });
       }
 
+      // Single session per user: remove any existing sessions before creating the new one
+      await db.delete(sessions).where(eq(sessions.userId, user.id));
+
       // Create session
       const token = jwt.sign(
         { userId: user.id, jti: crypto.randomUUID() },
@@ -158,6 +161,9 @@ export const authRouter = router({
           message: "Invalid credentials",
         });
       }
+
+      // Single session per user: remove any existing sessions before creating the new one
+      await db.delete(sessions).where(eq(sessions.userId, user.id));
 
       const token = jwt.sign(
         { userId: user.id, jti: crypto.randomUUID() },
