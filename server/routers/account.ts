@@ -1,3 +1,4 @@
+import { randomInt } from "node:crypto";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { protectedProcedure, router } from "../trpc";
@@ -6,10 +7,8 @@ import { accounts, transactions } from "@/lib/db/schema";
 import { isValidCardNumber } from "@/lib/validation";
 import { eq, and } from "drizzle-orm";
 
-function generateAccountNumber(): string {
-  return Math.floor(Math.random() * 1000000000)
-    .toString()
-    .padStart(10, "0");
+export function generateAccountNumber(): string {
+  return randomInt(0, 1_000_000_000).toString().padStart(10, "0");
 }
 
 export const accountRouter = router({

@@ -131,3 +131,17 @@
 - **One-way hashing**: Because bcrypt is one-way, existing plaintext SSNs cannot be hashed in place.
 - **Development**: Run `npm run db:clear` to wipe the database; all new signups will store hashed SSNs.
 - **Production**: A proper migration would require users to re-verify their SSN (e.g. through a secure flow), or accept the risk for legacy records until they re-engage.
+
+## SEC-302: Insecure Random Numbers
+
+### Problems
+
+- **Math.random() for account numbers**: `generateAccountNumber()` in `account.ts` used `Math.floor(Math.random() * 1000000000)` to generate 10-digit account numbers.
+- **Predictable PRNG**: `Math.random()` is a pseudo-random number generator (e.g. xorshift128+) that is not cryptographically secure. Its output can be predicted given enough observations or knowledge of internal state.
+- **Security-sensitive identifier**: Account numbers are long-lived identifiers; predictability increases the risk of enumeration or guessing attacks.
+
+### Fixes
+
+- **Cryptographically secure RNG**: Replaced `Math.random()` with Node.js `crypto.randomInt(0, 1_000_000_000)` from the `node:crypto` module.
+- **Unchanged behavior**: The uniqueness loop (`while (!isUnique)`) remains in place to handle the extremely rare case of collision.
+- **Unit tests**: Added `server/routers/account.test.ts` to assert that generated account numbers are 10 digits and that successive calls produce different values.
