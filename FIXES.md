@@ -206,3 +206,16 @@
 
 - **Remove erroneous loop**: Replaced the loop with a direct `account.balance + amount` for both the DB update and the returned `newBalance`.
 - **Round to 2 decimal places**: Use `Math.round((account.balance + amount) * 100) / 100` when calculating the new balance to keep amounts to 2 decimals and limit drift.
+
+## PERF-408: Resource Leak
+
+### Problems
+
+- **Redundant connection leaked**: `initDb()` created a new connection `conn` and pushed it into a `connections` array, but never used it. Schema creation used the existing `sqlite` connection. The extra `conn` was never closed.
+- **Unused connections array**: The array tracked the leaked connection but nothing closed those connections, adding complexity without benefit.
+- **Impact**: Extra connections consuming resources; potential exhaustion under load or in long-running processes.
+
+### Fixes
+
+- **Remove redundant connection**: Removed the `conn` creation and `connections` array from `initDb()`. Schema creation now uses only the main `sqlite` connection.
+- **Add closeDb()**: Exported a `closeDb()` function that closes the main SQLite connection for graceful shutdown (e.g. in tests or on process exit).

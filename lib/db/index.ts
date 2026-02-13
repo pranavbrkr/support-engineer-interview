@@ -7,12 +7,7 @@ const dbPath = process.env.DB_PATH ?? "bank.db";
 const sqlite = new Database(dbPath);
 export const db = drizzle(sqlite, { schema });
 
-const connections: Database.Database[] = [];
-
 export function initDb() {
-  const conn = new Database(dbPath);
-  connections.push(conn);
-
   // Create tables if they don't exist
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS users (
@@ -64,3 +59,7 @@ export function initDb() {
 
 // Initialize database on import
 initDb();
+
+export function closeDb(): void {
+  sqlite.close();
+}
