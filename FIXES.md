@@ -193,3 +193,16 @@
 
 - **Invalidate transactions on funding success**: In the dashboard's FundingModal `onSuccess` handler, call `utils.account.getTransactions.invalidate({ accountId })` so the transaction list refetches and displays new transactions immediately.
 - **Consistent invalidation**: Replaced `refetchAccounts()` with `utils.account.getAccounts.invalidate()` in the funding success flow for consistency with the query invalidation pattern.
+
+## PERF-406: Balance Calculation
+
+### Problems
+
+- **Float precision drift**: Balances and amounts use JavaScript floats. Repeated additions (`account.balance + amount`) introduce rounding errors that accumulate over many transactions, causing incorrect balances.
+- **Erroneous loop amplifying errors**: The code used a loop that added `amount / 100` one hundred times to compute `finalBalance`. Each addition introduced a tiny float error, worsening precision loss.
+- **Inconsistent return value**: The DB was updated with one calculation while the response used a different (looped) calculation, which could diverge.
+
+### Fixes
+
+- **Remove erroneous loop**: Replaced the loop with a direct `account.balance + amount` for both the DB update and the returned `newBalance`.
+- **Round to 2 decimal places**: Use `Math.round((account.balance + amount) * 100) / 100` when calculating the new balance to keep amounts to 2 decimals and limit drift.
