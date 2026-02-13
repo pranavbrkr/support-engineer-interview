@@ -67,6 +67,56 @@ export function getMaxDateOfBirth(): string {
   return maxDate.toISOString().slice(0, 10);
 }
 
+// Password validation (complexity requirements)
+const MIN_PASSWORD_LENGTH = 8;
+const COMMON_PASSWORDS = new Set([
+  "password",
+  "12345678",
+  "123456789",
+  "qwerty",
+  "qwerty123",
+  "password1",
+  "password123",
+  "admin",
+  "letmein",
+  "welcome",
+  "monkey",
+  "dragon",
+  "master",
+  "abc123",
+  "111111",
+  "1234567",
+  "sunshine",
+  "princess",
+  "football",
+  "iloveyou",
+  "admin123",
+  "welcome1",
+  "changeme",
+]);
+
+export function isValidPassword(password: string): boolean {
+  if (!password || password.length < MIN_PASSWORD_LENGTH) return false;
+  if (COMMON_PASSWORDS.has(password.toLowerCase())) return false;
+  if (!/[A-Z]/.test(password)) return false;
+  if (!/[a-z]/.test(password)) return false;
+  if (!/\d/.test(password)) return false;
+  if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) return false;
+  return true;
+}
+
+export function validatePassword(value: string): true | string {
+  if (!value) return "Password is required";
+  if (value.length < MIN_PASSWORD_LENGTH) return "Password must be at least 8 characters";
+  if (COMMON_PASSWORDS.has(value.toLowerCase())) return "Password is too common";
+  if (!/[A-Z]/.test(value)) return "Password must contain at least one uppercase letter";
+  if (!/[a-z]/.test(value)) return "Password must contain at least one lowercase letter";
+  if (!/\d/.test(value)) return "Password must contain at least one number";
+  if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(value))
+    return "Password must contain at least one special character (!@#$%^&*...)";
+  return true;
+}
+
 // Card validation (Luhn algorithm + format)
 const VALID_CARD_LENGTHS = [13, 15, 16, 19];
 
