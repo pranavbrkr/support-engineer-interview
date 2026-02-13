@@ -175,16 +175,9 @@ export const accountRouter = router({
         .where(eq(transactions.accountId, input.accountId))
         .orderBy(desc(transactions.createdAt), desc(transactions.id));
 
-      const enrichedTransactions = [];
-      for (const transaction of accountTransactions) {
-        const accountDetails = await db.select().from(accounts).where(eq(accounts.id, transaction.accountId)).get();
-
-        enrichedTransactions.push({
-          ...transaction,
-          accountType: accountDetails?.accountType,
-        });
-      }
-
-      return enrichedTransactions;
+      return accountTransactions.map((transaction) => ({
+        ...transaction,
+        accountType: account.accountType,
+      }));
     }),
 });
