@@ -88,10 +88,12 @@ export const authRouter = router({
       }
 
       const hashedPassword = await bcrypt.hash(input.password, 10);
+      const hashedSsn = await bcrypt.hash(input.ssn, 10);
 
       await db.insert(users).values({
         ...input,
         password: hashedPassword,
+        ssn: hashedSsn,
       });
 
       // Fetch the created user
@@ -125,7 +127,8 @@ export const authRouter = router({
         (ctx.res as Headers).set("Set-Cookie", `session=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=604800`);
       }
 
-      return { user: { ...user, password: undefined }, token };
+      const { password: _p, ssn: _s, ...safeUser } = user;
+      return { user: safeUser, token };
     }),
 
   login: publicProcedure
@@ -173,7 +176,8 @@ export const authRouter = router({
         (ctx.res as Headers).set("Set-Cookie", `session=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=604800`);
       }
 
-      return { user: { ...user, password: undefined }, token };
+      const { password: _p, ssn: _s, ...safeUser } = user;
+      return { user: safeUser, token };
     }),
 
   logout: publicProcedure.mutation(async ({ ctx }) => {
