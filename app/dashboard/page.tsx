@@ -130,7 +130,7 @@ export default function DashboardPage() {
           onClose={() => setFundingAccountId(null)}
           onSuccess={() => {
             setFundingAccountId(null);
-            refetchAccounts();
+            utils.account.getAccounts.invalidate();
             if (fundingAccountId) {
               utils.account.getTransactions.invalidate({ accountId: fundingAccountId });
             }
