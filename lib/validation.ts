@@ -158,9 +158,11 @@ export function isValidCardNumber(cardNumber: string): boolean {
 }
 
 export function validateCardNumber(value: string): true | string {
-  const digits = value?.replace(/\D/g, "") ?? "";
+  const raw = value?.trim() ?? "";
+  if (!raw) return "Card number is required";
+  if (/[a-zA-Z]/.test(raw)) return "Card number must contain only digits";
+  const digits = raw.replace(/\D/g, "");
   if (!digits) return "Card number is required";
-  if (!/^\d+$/.test(digits)) return "Card number must contain only digits";
   if (!VALID_CARD_LENGTHS.includes(digits.length)) return "Card number must be 13, 15, 16, or 19 digits";
   if (!luhnCheck(digits)) return "Invalid card number";
   if (!hasValidCardPrefix(digits)) return "Card number not recognized";
