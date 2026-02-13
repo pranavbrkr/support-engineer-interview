@@ -252,3 +252,14 @@
 ### Fixes
 
 - **Sort by date descending**: Added `.orderBy(desc(transactions.createdAt))` so transactions are returned newest-first, matching typical expectations for transaction history.
+
+## PERF-407: Performance Degradation
+
+### Problems
+
+- **N+1 query in getTransactions**: For each transaction, the code ran a separate DB query to fetch account details (`accountDetails`). With many transactions, this caused 1 + N queries (e.g. 101 queries for 100 transactions), slowing the system during peak usage.
+- **Redundant fetches**: All transactions belong to the same account (filtered by `accountId`), so the same account was fetched repeatedly in the loop.
+
+### Fixes
+
+- **Use existing account**: The account was already loaded for authorization. Reuse `account.accountType` instead of querying in the loop. Reduced from 1 + N queries to 2 queries total (account + transactions).
